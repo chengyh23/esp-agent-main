@@ -1,0 +1,1 @@
+Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen.

@@ -1,0 +1,29 @@
+Create a project using the ESP32-S3-BOX-3 with its Bread breakout board, to blink an external LED through GPIO21 on the Bread breakout board. The LED should be toggled at 0.5Hz for 30 second, then stop blinking. Also give me the connection/wiring diagram.
+
+Build the circuit and write a robust program for ESP32-S3-BOX that emulates a doorbell. When the button is pushed, the buzzer will go off; when the button is let go, the buzzer will return to silent mode. The expectation is that this operation is done using an interrupt triggered by, or tied to, a GPIO pin tied to the button, and a gpio pin that control the buzzer.
+
+Integrate the button (GPIO9), buzzer (GPIO21), and LED (GPIO13) into one system based on ESP32-S3. Every time the button is pressed (GPIO reads 'HIGH'), two things happen: (1) the buzzer sounds, and (2) the external LED's blinking frequency changes based on a sequence cycles through 1 Hz, 2 Hz, 4 Hz, and Off (not blinking) with each press. The LED control relies on timers, while the button inputs use interrupts. When the button is pressed, the buzzer will go off; when the button is let go, the buzzer will return to silent mode.
+
+Write a program that uses interrupt triggered by a pressing a tact switch (GPIO 13) to toggle an LED (GPIO 21). Set debounce time to 50 msec to the switch.
+
+Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to toggle an LED (GPIO 21). Every time the button is pressed, the LED should be switch on; when the button is released, the LED should be switched off.
+
+Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to toggle an LED (GPIO 21) and a buzzer (GPIO 9). Every time the button is pressed, the LED should be switch on and buzzer will alarm; when the button is released, the LED should be switched off and buzzer turned off.
+
+Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to control the start and stop of toggle an LED (GPIO 21). Every time the button is pressed (and released), the LED toggling should be switch on and off. LED toggles at 1 Hz, implemented using a timer.
+
+Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to control the toggling frequency of an LED (GPIO 21). Every time the button is pressed (and released), the LED toggling should be switched between 1 Hz and 2 Hz (start with 1 Hz when program initialized). LED toggling is implemented using a timer. A buzzer (GPIO 9) will also go off when the tact switch is pressed (and return to silent if the switch is released).
+
+[X] Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to control the toggle frequency of an LED (GPIO 21). Every time the button is pressed (and released), the LED toggling rate will be changed from 0.5 Hz, 1 Hz, 2 Hz and keep going on by repeating this pattern. LED toggling is implemented using a timer.
+
+Write a program that uses interrupt triggered by pressing a tact switch (GPIO 13) to control the toggling frequency of an LED (GPIO 21). Every time the button is pressed (and released), the LED toggling should be switched between 1 Hz, 2 Hz and 4 Hz (start with 1 Hz when program initialized). LED toggling is implemented using a timer. A buzzer (GPIO 9) will also go off when the tact switch is pressed (and return to silent if the switch is released).
+
+Implement a breething LED (GPIO 21) with 50 levels of duty cycles: 2%, 4%, 6%, ... 100%, with a total breathing frequency of 1 Hz. Can use the ledc_* functions available.
+
+[X] Implement two breathing LEDs (GPIO 21 and GOIO 9), each with 50 levels of duty cycles: 2%, 4%, 6%, ... 100%, with a total breathing frequency of 1 Hz. Make their breathing pattern the opposite of each other.
+
+Implement one breathing LED (GOIO 13), each with 50 levels of duty cycles: 2%, 4%, 6%, ... 100%, with a total breathing frequency of 1 Hz. Then, implement another breathing LED (GPIO 21) with identical pattern but with the 50 levels of duty cycle given by 100%, 98%, 96%, ..., 4%, 2%.
+
+Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen. If LVGL is used please use APIs from LGVL 9.
+
+Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen. Include the "esp32s3_box_lcd_config.h" header file and write program based on "esp32s3_lcd_template.c". Make sure all used PINs for the LCD are matched between these files. If LVGL is used please use APIs from LGVL 9.
