@@ -51,6 +51,9 @@ class PlatformSkillset:
     
     # Important header files and their purposes
     header_files: Dict[str, str]
+
+    # Compile-time configuration notes
+    compile_time: Dict[str, str]
     
     # ESP-IDF version
     esp_idf_version: str = "5.5"
@@ -89,6 +92,11 @@ Peripherals:
             for header, purpose in self.header_files.items():
                 specs += f"- {header}: {purpose}\n"
         
+        if self.compile_time:
+            specs += "\nCompile-Time Configuration Notes:\n"
+            for item, note in self.compile_time.items():
+                specs += f"- {item}: {note}\n"
+        
         return specs
     
     def get_gpio_reference(self) -> str:
@@ -96,6 +104,7 @@ Peripherals:
         text = f"\n{self.platform_name} GPIO Reference:\n"
         for usage, gpio in sorted(self.gpio_mapping.items()):
             text += f"- {usage}: {gpio}\n"
+        text += "MUST choose GPIOs ONLY from this list in the code.\n"
         return text
     
     def to_anthropic_tool_format(self) -> Dict[str, Any]:
@@ -164,6 +173,11 @@ Peripherals:
                     "type": "object",
                     "description": "Important header files and their purposes",
                     "additionalProperties": {"type": "string"}
+                },
+                "compile_time": {
+                    "type": "object",
+                    "description": "Compile-time configuration notes",
+                    "additionalProperties": {"type": "string"}
                 }
             }
         }
@@ -198,7 +212,8 @@ Peripherals:
             "available_interfaces": self.available_interfaces,
             "connectivity_features": self.connectivity_features,
             "hardware_best_practices": self.hardware_best_practices,
-            "header_files": self.header_files
+            "header_files": self.header_files,
+            "compile_time": self.compile_time,
         }
     
     def save_to_json(self, filepath: str) -> None:
@@ -296,37 +311,61 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "RGB LED Blue": "GPIO 48",
         "White LED": "GPIO 46",
         # Bread Breakout Board - Fixed Pin Mapping (based on ESP32-S3-BOX-3-BREAD official layout)
-        "Bread GPIO 1": "GPIO 1",
-        "Bread GPIO 2": "GPIO 2", 
-        "Bread GPIO 3": "GPIO 3",
-        "Bread GPIO 4": "GPIO 4",
-        "Bread GPIO 5": "GPIO 5",
-        "Bread GPIO 6": "GPIO 6",
-        "Bread GPIO 7": "GPIO 7",
-        "Bread GPIO 8": "GPIO 8",
+        # "Bread GPIO 1": "GPIO 1",
+        # "Bread GPIO 2": "GPIO 2", 
+        # "Bread GPIO 3": "GPIO 3",
+        # "Bread GPIO 4": "GPIO 4",
+        # "Bread GPIO 5": "GPIO 5",
+        # "Bread GPIO 6": "GPIO 6",
+        # "Bread GPIO 7": "GPIO 7",
+        # "Bread GPIO 8": "GPIO 8",
         "Bread GPIO 9": "GPIO 9",
         "Bread GPIO 10": "GPIO 10",
         "Bread GPIO 11": "GPIO 11",
         "Bread GPIO 12": "GPIO 12",
         "Bread GPIO 13": "GPIO 13", 
         "Bread GPIO 14": "GPIO 14",
-        "Bread GPIO 15": "GPIO 15",
-        "Bread GPIO 16": "GPIO 16",
-        "Bread GPIO 17": "GPIO 17",
-        "Bread GPIO 18": "GPIO 18",
+        # "Bread GPIO 15": "GPIO 15",
+        # "Bread GPIO 16": "GPIO 16",
+        # "Bread GPIO 17": "GPIO 17",
+        # "Bread GPIO 18": "GPIO 18",
         "Bread GPIO 19": "GPIO 19",
         "Bread GPIO 20": "GPIO 20",
         "Bread GPIO 21": "GPIO 21",
-        "Bread GPIO 35": "GPIO 35",
-        "Bread GPIO 36": "GPIO 36",
-        "Bread GPIO 37": "GPIO 37",
+        # "Bread GPIO 35": "GPIO 35",
+        # "Bread GPIO 36": "GPIO 36",
+        # "Bread GPIO 37": "GPIO 37",
         "Bread GPIO 38": "GPIO 38",
         "Bread GPIO 39": "GPIO 39",
         "Bread GPIO 40": "GPIO 40",
         "Bread GPIO 41": "GPIO 41",
         "Bread GPIO 42": "GPIO 42",
+        "Bread GPIO 42": "GPIO 43",
+        "Bread GPIO 42": "GPIO 44",
         "Bread GND": "GND",
         "Bread 3.3V": "3.3V",
+        
+        # https://github.com/espressif/esp-idf/blob/v5.5/components/soc/esp32s3/include/soc/adc_channel.h
+        # "ADC1_CHANNEL_0_GPIO_NUM": "1",
+        # "ADC1_CHANNEL_1_GPIO_NUM": "2",
+        # "ADC1_CHANNEL_2_GPIO_NUM": "3",
+        # "ADC1_CHANNEL_3_GPIO_NUM": "4",
+        # "ADC1_CHANNEL_4_GPIO_NUM": "5",
+        # "ADC1_CHANNEL_5_GPIO_NUM": "6",
+        # "ADC1_CHANNEL_6_GPIO_NUM": "7",
+        # "ADC1_CHANNEL_7_GPIO_NUM": "8",
+        "ADC1_CHANNEL_8_GPIO_NUM": "9",
+        "ADC1_CHANNEL_9_GPIO_NUM": "10",
+        "ADC2_CHANNEL_0_GPIO_NUM": "11",
+        "ADC2_CHANNEL_1_GPIO_NUM": "12",
+        "ADC2_CHANNEL_2_GPIO_NUM": "13",
+        "ADC2_CHANNEL_3_GPIO_NUM": "14",
+        # "ADC2_CHANNEL_4_GPIO_NUM": "15",
+        # "ADC2_CHANNEL_5_GPIO_NUM": "16",
+        # "ADC2_CHANNEL_6_GPIO_NUM": "17",
+        # "ADC2_CHANNEL_7_GPIO_NUM": "18",
+        "ADC2_CHANNEL_8_GPIO_NUM": "19",
+        "ADC2_CHANNEL_9_GPIO_NUM": "20",
     },
     
     available_interfaces=[
@@ -382,6 +421,11 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "<esp_bt.h>": "Bluetooth driver for BLE and classic Bluetooth",
         "esp32s3_box_lcd_config.h": "LCD configuration header for ESP32-S3-BOX with ILI9341 controller, SPI pin definitions, and LVGL display settings (available as template in templates/esp_idf/)",
     },
+
+    compile_time={
+        "sdkconfig-font": "Ensure the font used in  ESP-IDF C code is enabled in sdkconfig. Read ESP-IDF C code written by generate_code, if lv_font_montserrat_<number> is found in the ESP_IDF C code, then ensure set CONFIG_LV_FONT_MONTSERRAT_<number>=y (not =n) in sdkconfig. Run scripts/configure_lvgl_fonts.py to do this step.",
+
+    }
 )
 
 

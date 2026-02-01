@@ -27,3 +27,7 @@ Implement one breathing LED (GOIO 13), each with 50 levels of duty cycles: 2%, 4
 Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen. If LVGL is used please use APIs from LGVL 9.
 
 Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen. Include the "esp32s3_box_lcd_config.h" header file and write program based on "esp32s3_lcd_template.c". Make sure all used PINs for the LCD are matched between these files. If LVGL is used please use APIs from LGVL 9.
+
+Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen.
+
+Demonstrate a temperature logger using the TMP36 temperature sensor and ESP32’s ADC. Every time the button is pressed, an interrupt will be triggered, during which the ESP32 samples the analog output of the TMP36 temperature sensor, calibrates the obtained ADC reading, and displays the temperature reading on the LCD screen (the button press will also clear the LCD screen), with a reasonable font size/layout in the format of “Temp: {ADC reading} F”

@@ -43,6 +43,7 @@ class State:
     wiring_diagram: str = ""  # Generated wiring diagram (structured text/JSON)
     wiring_diagram_svg: str = ""  # SVG representation of wiring diagram
     additional_info: str = ""  # Additional documentation
+    sdkconfig: str = ""  # Reconciled sdkconfig content
     message: str = ""
     platform: str = "esp32-s3-box-3"  # Target platform
 
@@ -60,6 +61,50 @@ async def read_design(state: State, runtime: Runtime[Context]) -> Dict[str, Any]
     
     print(f"📄 Read design from {state.design_file}")
     return {"design": design}
+
+async def reconcile_sdkconfig(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
+    # Get platform skillset
+    try:
+        skillset = get_skillset(state.platform)
+    except ValueError as e:
+        raise ValueError(f"Invalid platform specified: {e}")
+    model = ChatAnthropic(
+        model=config.ANTHROPIC_MODEL,
+        api_key=config.ANTHROPIC_API_KEY,
+        max_retries=config.MAX_RETRIES,
+        timeout=config.TIMEOUT_SECONDS
+    )
+
+    prompt_lines = [
+        f"You are an ESP-IDF {skillset.esp_idf_version} configuration expert in {skillset.platform_name} ({skillset.mcu}). Analyze the ESP32 C code written by `generate_code` and ensure the sdkconfig is consistent with all compile-time requirements."
+        "",
+        "Here is the generated ESP-IDF C code:",
+        state.esp_idf_code,
+        "",
+        skillset.get_specs_text(),
+    ]
+    prompt_lines.extend([
+        """Default sdkconfig is:
+
+# ESP-IDF SDK Configuration
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
+"""
+    ])
+    prompt_lines.extend([
+        "Only make necessary changes to default sdkconfig to ensure all required features (like fonts) are enabled based on the generated code.",
+        "Output ONLY sdkconfig. No explanations or markdown formatting."
+    ])
+    prompt = "\n".join(prompt_lines)
+    response = await model.ainvoke(prompt)
+    code = response.content.strip()
+
+    if code.startswith('```c'):
+        code = code[4:].strip()
+    if code.endswith('```'):
+        code = code[:-3].strip()
+    print("🛠️ Reconciled sdkconfig")
+    return {"sdkconfig": code}
 
 
 async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
@@ -383,6 +428,9 @@ idf.py monitor
 CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
 CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
 ''')
+    if state.sdkconfig:
+        with open(os.path.join(project_dir, "sdkconfig"), "w") as f:
+            f.write(state.sdkconfig)
     
     # Create sdkconfig.defaults for IDF target
     with open(os.path.join(project_dir, "sdkconfig.defaults"), "w") as f:
@@ -394,6 +442,7 @@ CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
         "message": f"ESP-IDF project '{project_name}' created successfully in ./{project_name}/"
     }
 
+
 # Define the graph
 graph = StateGraph(State, context_schema=Context)
 graph = graph.add_node(read_design)
@@ -403,6 +452,7 @@ graph = graph.add_node(generate_code)
 if config.GENERATE_WIRING_DIAGRAM:
     graph = graph.add_node(generate_diagram)
 
+graph = graph.add_node(reconcile_sdkconfig)
 graph = graph.add_node(assemble_project)
 
 # Add edges
@@ -413,6 +463,8 @@ if config.GENERATE_WIRING_DIAGRAM:
     graph = graph.add_edge("read_design", "generate_diagram")
     graph = graph.add_edge("generate_diagram", "assemble_project")
 
-graph = graph.add_edge("generate_code", "assemble_project")
+# graph = graph.add_edge("generate_code", "assemble_project")
+graph = graph.add_edge("generate_code", "reconcile_sdkconfig")
+graph = graph.add_edge("reconcile_sdkconfig", "assemble_project")
 
 graph = graph.compile(name="ESP-IDF Project Creator")
