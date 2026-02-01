@@ -104,7 +104,7 @@ Peripherals:
         text = f"\n{self.platform_name} GPIO Reference:\n"
         for usage, gpio in sorted(self.gpio_mapping.items()):
             text += f"- {usage}: {gpio}\n"
-        text += "MUST choose GPIOs ONLY from this list in the code.\n"
+        text += "You MUST choose GPIOs exclusively from the list above.\nDo NOT use any GPIO not explicitly listed here.\n"
         return text
     
     def to_anthropic_tool_format(self) -> Dict[str, Any]:
@@ -288,10 +288,7 @@ ESP32_S3_BOX_3 = PlatformSkillset(
     },
     
     gpio_mapping={
-        "BOOT Button": "GPIO 0",
         "RST Button": "RESET",
-        "User Button 1": "GPIO 1",
-        "User Button 2": "GPIO 2",
         "Display CS": "GPIO 5",
         "Display DC": "GPIO 4",
         "Display RST": "GPIO 9",
@@ -340,8 +337,26 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "Bread GPIO 40": "GPIO 40",
         "Bread GPIO 41": "GPIO 41",
         "Bread GPIO 42": "GPIO 42",
-        "Bread GPIO 42": "GPIO 43",
-        "Bread GPIO 42": "GPIO 44",
+        "Bread GPIO 43": "GPIO 43",
+        "Bread GPIO 44": "GPIO 44",
+        
+        # "GPIO_NUM_9": "9",
+        # "GPIO_NUM_10": "10",
+        # "GPIO_NUM_11": "11",
+        # "GPIO_NUM_12": "12",
+        # "GPIO_NUM_13": "13", 
+        # "GPIO_NUM_14": "14",
+        # "GPIO_NUM_19": "19",
+        # "GPIO_NUM_20": "20",
+        # "GPIO_NUM_21": "21",
+        # "GPIO_NUM_38": "38",
+        # "GPIO_NUM_39": "39",
+        # "GPIO_NUM_40": "40",
+        # "GPIO_NUM_41": "41",
+        # "GPIO_NUM_42": "42",
+        # "GPIO_NUM_42": "43",
+        # "GPIO_NUM_42": "44",
+
         "Bread GND": "GND",
         "Bread 3.3V": "3.3V",
         

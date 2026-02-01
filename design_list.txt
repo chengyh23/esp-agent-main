@@ -31,3 +31,12 @@ Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the
 Set up the ESP32-S3-BOX-3 built-in LCD display, and display "Hello World" at the center of the screen.
 
 Demonstrate a temperature logger using the TMP36 temperature sensor and ESP32’s ADC. Every time the button is pressed, an interrupt will be triggered, during which the ESP32 samples the analog output of the TMP36 temperature sensor, calibrates the obtained ADC reading, and displays the temperature reading on the LCD screen (the button press will also clear the LCD screen), with a reasonable font size/layout in the format of “Temp: {ADC reading} F”
+
+Demonstrate the timer-based temperature logger system, where the temperature is properly sampled by the ADC and displayed on the LCD every 1 second. 
+Set up a system timer that expires every 1 second, and a counter is used to track how many times the timer has expired. Every time the timer expires (i.e., every 1 second), the following things are done in the sequential order:
+● The ADC samples the TMP36 analog temperature sensor;
+● The MCU (ESP32) calibrates the ADC reading to F (Fahrenheit);
+● The calibrated reading is displayed in a new line on the LCD in the format of “Temp #{counter}: {ADC reading} F”
+The most recent reading is always displayed at the end (bottom), and the previous reading will shift up line by line as the new reading comes in every 1 second. In addition, every time the push button is pressed, an interrupt will be triggered that:
+● Reset the counter to start from 1; and
+● Clears the LCD display
