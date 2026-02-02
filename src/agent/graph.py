@@ -128,6 +128,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     design_text = state.design or ""
     design_lower = design_text.lower()
     wants_lcd = any(keyword in design_lower for keyword in ["lcd", "display", "screen", "tft", "ili9341"])
+    wants_dht11 = "dht11" in design_lower
 
     prompt_lines = [
         f"You are an expert ESP-IDF {skillset.esp_idf_version} developer specializing in {skillset.platform_name} ({skillset.mcu}) development. Generate ONLY the ESP-IDF C code for main.c based on this design.",
@@ -160,6 +161,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
         "- DO NOT use chip-specific low-level APIs unless absolutely necessary",
         "- Use standard ESP-IDF driver APIs (gpio, i2c, spi, uart, etc.)",
         "- If the design involves LCD/display functionality, include \"esp32s3_box_lcd_config.h\" header",
+        "- If the design involves DHT11 sensor, include \"dht11.h\" header",
         "",
         "Output ONLY the complete, compilable ESP-IDF C code with proper includes and app_main() function. No explanations or markdown formatting.",
     ])
@@ -177,6 +179,18 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
                 "```c",
                 lcd_template,
                 ", and just use default fonts.```",
+            ])
+    if wants_dht11:
+        dht11_template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'dht11', 'dht11.c')
+        if os.path.exists(dht11_template_path):
+            with open(dht11_template_path, 'r') as template_file:
+                dht11_template = template_file.read().strip()
+            prompt_lines.extend([
+                "",
+                "REFERENCE DHT11 (src code for dht11.h):",
+                "```c",
+                dht11_template,
+                "```",
             ])
 
     prompt = "\n".join(prompt_lines)
@@ -335,6 +349,8 @@ project({project_name})
 
     # Detect if LCD support is required (based on config header usage)
     uses_lcd = bool(state.esp_idf_code and 'esp32s3_box_lcd_config.h' in state.esp_idf_code)
+    # Detect if DHT11 sensor is used
+    uses_dht11 = bool(state.esp_idf_code and 'dht11.h' in state.esp_idf_code)
 
     # Create idf_component.yml in main component directory with conditional dependencies
     idf_component_lines = [
@@ -373,6 +389,16 @@ project({project_name})
             import shutil
             shutil.copy2(header_src, header_dst)
             print("📄 Copied LCD config header to project")
+    if uses_dht11:
+        header_src = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'dht11', 'dht11.h')
+        implementation_src = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'dht11', 'dht11.c')
+        header_dst = os.path.join(main_dir, 'dht11.h')
+        implementation_dst = os.path.join(main_dir, 'dht11.c')
+        if os.path.exists(header_src):
+            import shutil
+            shutil.copy2(header_src, header_dst)
+            shutil.copy2(implementation_src, implementation_dst)
+            print("📄 Copied DHT11 header and implementation to project")
 
     # Write the generated ESP-IDF code as main.c
     if state.esp_idf_code:

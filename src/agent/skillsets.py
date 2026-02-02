@@ -416,6 +416,7 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "LEDC Frequency Selection": "Choose LEDC frequency based on application: 50Hz for servos, 1-5kHz for LEDs, 2-4kHz for buzzers. Higher frequencies reduce audible noise but may limit duty resolution.",
         "LCD Pin Macro Usage": "For all LCD/display code, you MUST use the macros defined in 'esp32s3_box_lcd_config.h' for all pin assignments and configuration values (e.g., EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_PIN_NUM_SCLK, etc.). Do NOT use hardcoded GPIO numbers or values. Follow the canonical style in 'templates/esp_idf/esp32s3_lcd_template.c'.",
         "LCD Component Dependencies": "If the embedded LCD is used, you MUST add the following to idf_component.yml dependencies: lvgl/lvgl: ^9.2.0, esp_lcd_ili9341: ^1.0, espressif/esp_lvgl_port: ^2.6.0. This ensures all required display and graphics libraries are available for ESP-IDF build.",
+        "DHT11": "When using the DHT11 temperature and humidity sensor, include 'dht11.h' and use DHT11_init(gpio_num_t) to initialize the sensor on the specified GPIO pin. Use DHT11_read() to read temperature and humidity values, which returns a dht11_reading struct containing the data.",
     },
     
     header_files={
@@ -435,6 +436,7 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "<esp_wifi.h>": "Wi-Fi driver for wireless connectivity",
         "<esp_bt.h>": "Bluetooth driver for BLE and classic Bluetooth",
         "esp32s3_box_lcd_config.h": "LCD configuration header for ESP32-S3-BOX with ILI9341 controller, SPI pin definitions, and LVGL display settings (available as template in templates/esp_idf/)",
+        "dht11.h": "DHT11 temperature and humidity sensor driver. DHT11_init(gpio_num_t) - Initialize sensor on specified GPIO pin. DHT11_read() - Read temperature/humidity, returns dht11_reading struct",
     },
 
     compile_time={

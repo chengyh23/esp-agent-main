@@ -1,8 +1,2 @@
-Demonstrate the timer-based temperature logger system, where the temperature is properly sampled by the ADC and displayed on the LCD every 1 second. 
-Set up a system timer that expires every 1 second, and a counter is used to track how many times the timer has expired. Every time the timer expires (i.e., every 1 second), the following things are done in the sequential order:
-● The ADC samples the TMP36 analog temperature sensor;
-● The MCU (ESP32) calibrates the ADC reading to F (Fahrenheit);
-● The calibrated reading is displayed in a new line on the LCD in the format of “Temp #{counter}: {ADC reading} F”
-The most recent reading is always displayed at the end (bottom), and the previous reading will shift up line by line as the new reading comes in every 1 second. In addition, every time the push button is pressed, an interrupt will be triggered that:
-● Reset the counter to start from 1; and
-● Clears the LCD display
+Write the program and implement a customized 1-Wire protocol on the ESP32, which reads and parses the DHT11 sensor data captured by the ESP32 and displays it on the LCD. 
+In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
