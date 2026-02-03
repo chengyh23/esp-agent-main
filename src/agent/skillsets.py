@@ -104,7 +104,7 @@ Peripherals:
         text = f"\n{self.platform_name} GPIO Reference:\n"
         for usage, gpio in sorted(self.gpio_mapping.items()):
             text += f"- {usage}: {gpio}\n"
-        text += "You MUST choose GPIOs exclusively from the list above.\nDo NOT use any GPIO not explicitly listed here.\n"
+        text += "[STRICT PINNING RULE] You are ONLY permitted to use GPIO pins from 9,10,11,12,13,14,19,20,21,38,39,40,41,42,43,44 GPIOs only.\nIf you use any GPIO not explicitly listed here, the harware will fail.\n"
         return text
     
     def to_anthropic_tool_format(self) -> Dict[str, Any]:
@@ -288,25 +288,26 @@ ESP32_S3_BOX_3 = PlatformSkillset(
     },
     
     gpio_mapping={
-        "RST Button": "RESET",
-        "Display CS": "GPIO 5",
-        "Display DC": "GPIO 4",
-        "Display RST": "GPIO 9",
-        "Display CLK (SPI)": "GPIO 7",
-        "Display MOSI (SPI)": "GPIO 6",
-        "Display MISO (SPI)": "GPIO 8",
-        "IMU SDA": "GPIO 8",
-        "IMU SCL": "GPIO 9",
-        "Microphone CLK": "GPIO 32",
-        "Microphone WS": "GPIO 33",
-        "Microphone SD": "GPIO 34",
-        "Speaker LRCK": "GPIO 33",
-        "Speaker BCLK": "GPIO 32",
-        "Speaker DOUT": "GPIO 35",
-        "RGB LED Red": "GPIO 21",
-        "RGB LED Green": "GPIO 47",
-        "RGB LED Blue": "GPIO 48",
-        "White LED": "GPIO 46",
+        # "RST Button": "RESET",
+        # "Display CS": "GPIO 5",
+        # "Display DC": "GPIO 4",
+        # "Display RST": "GPIO 9",
+        # "Display CLK (SPI)": "GPIO 7",
+        # "Display MOSI (SPI)": "GPIO 6",
+        # "Display MISO (SPI)": "GPIO 8",
+        # "IMU SDA": "GPIO 8",
+        # "IMU SCL": "GPIO 9",
+        # "Microphone CLK": "GPIO 32",
+        # "Microphone WS": "GPIO 33",
+        # "Microphone SD": "GPIO 34",
+        # "Speaker LRCK": "GPIO 33",
+        # "Speaker BCLK": "GPIO 32",
+        # "Speaker DOUT": "GPIO 35",
+        # "RGB LED Red": "GPIO 21",
+        # "RGB LED Green": "GPIO 47",
+        # "RGB LED Blue": "GPIO 48",
+        # "White LED": "GPIO 46",
+
         # Bread Breakout Board - Fixed Pin Mapping (based on ESP32-S3-BOX-3-BREAD official layout)
         # "Bread GPIO 1": "GPIO 1",
         # "Bread GPIO 2": "GPIO 2", 
@@ -339,6 +340,9 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         "Bread GPIO 42": "GPIO 42",
         "Bread GPIO 43": "GPIO 43",
         "Bread GPIO 44": "GPIO 44",
+
+        "Bread GND": "GND",
+        "Bread 3.3V": "3.3V",
         
         # "GPIO_NUM_9": "9",
         # "GPIO_NUM_10": "10",
@@ -357,8 +361,6 @@ ESP32_S3_BOX_3 = PlatformSkillset(
         # "GPIO_NUM_42": "43",
         # "GPIO_NUM_42": "44",
 
-        "Bread GND": "GND",
-        "Bread 3.3V": "3.3V",
         
         # https://github.com/espressif/esp-idf/blob/v5.5/components/soc/esp32s3/include/soc/adc_channel.h
         # "ADC1_CHANNEL_0_GPIO_NUM": "1",
