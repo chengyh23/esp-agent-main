@@ -129,7 +129,8 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     design_lower = design_text.lower()
     wants_lcd = any(keyword in design_lower for keyword in ["lcd", "display", "screen", "tft", "ili9341"])
     wants_dht11 = "dht11" in design_lower
-    wants_mpu6050 = "mpu 6050" in design_lower or "mpu6050" in design_lower
+    wants_mpu6050 = any(keyword in design_lower for keyword in ["mpu 6050", "mpu6050"])
+    wants_icmp_echo = any(keyword in design_lower for keyword in ["ping", "icmp echo", "icmp_echo"])
 
     prompt_lines = [
         f"You are an expert ESP-IDF {skillset.esp_idf_version} developer specializing in {skillset.platform_name} ({skillset.mcu}) development. Generate ONLY the ESP-IDF C code for main.c based on this design.",
@@ -207,7 +208,19 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
                 "```",
                 # "Only learn how it initializes and reads data from MPU6050; do NOT copy entire code.",
             ])
-
+    if wants_icmp_echo:
+        # https://github.com/espressif/esp-idf/blob/release/v5.5/examples/protocols/icmp_echo/main/echo_example_main.c
+        icmp_echo_template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'icmp_echo', 'echo_example_main.c')
+        if os.path.exists(icmp_echo_template_path):
+            with open(icmp_echo_template_path, 'r') as template_file:
+                icmp_echo_template = template_file.read().strip()
+            prompt_lines.extend([
+                "",
+                "REFERENCE ICMP ECHO EXAMPLE (adapt it to satisfy the current design):",
+                "```c",
+                icmp_echo_template,
+                "```",
+            ])
     prompt = "\n".join(prompt_lines)
     
     response = await model.ainvoke(prompt)

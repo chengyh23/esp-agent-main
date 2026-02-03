@@ -1,1 +1,1 @@
-Write the program and perform a scan of the available Wi-Fi networks in the environment. Display the existing Wi-Fi networks one by one (indexed by a counter, count) on the LCD with the SSID and RSSI information: "Wi-Fi network #{count}\nSSID: {XXX}\nRSSI: {X.XX}"
+Write the program to connect your ESP32-S3-BOX board to a given Wi-Fi network (SSID: DukeVisitor, auth mode: WIFI_AUTH_OPEN), ping the domain “www.duke.edu”, and display the returned results on the LCD in the format: "Status: Success/Fail\nDelay: {XX.X} ms"
