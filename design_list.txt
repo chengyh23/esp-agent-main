@@ -51,4 +51,8 @@ Write the program that allows the ESP32 to control and read data from the MPU 60
 
 Write the program and perform a scan of the available Wi-Fi networks in the environment. Display the existing Wi-Fi networks one by one (indexed by a counter, count) on the LCD with the SSID and RSSI information: "Wi-Fi network #{count}\nSSID: {XXX}\nRSSI: {X.XX}"
 
-Write the program to connect your ESP32-S3-BOX board to a given Wi-Fi network, ping the domain “www.duke.edu”, and display the returned results on the LCD in the format: "Status: Success/Fail\nDelay: {XX.X} ms"
+Write the program to connect your ESP32-S3-BOX board to a given Wi-Fi network (SSID: DukeVisitor, auth mode: WIFI_AUTH_OPEN), ping the domain “www.duke.edu”, and display the returned results on the LCD in the format: "Status: Success/Fail\nDelay: {XX.X} ms"
+
+Write the program that allows the ESP32 to retrieve the IP-based geolocation information via an HTTP GET request. First connect to a given Wi-Fi network (SSID: DukeVisitor, auth mode: WIFI_AUTH_OPEN). Then, sse the ESP-IDF json library to parse the response returned by the HTTP GET request, and display the zip code (Zip), latitude (Lat), and longitude (Lon) information on the OLED in the following format: "Zip: {XXXXX}\nLat: {X.XX}\nLon: {X.XX}"
+
+Write the program that allows the ESP32 to retrieve the weather information via an HTTP GET request from the OpenWeatherMap API (API key: 4159e9c1e80666a338728d323a0d3055). Connect to a given Wi-Fi network (SSID: DukeVisitor, auth mode: WIFI_AUTH_OPEN). Use the ESP-IDF json library to parse the response returned by the HTTP GET request, and display the temperature (Temp), humidity (Humd), and wind speed (Wind) information on the LCD in the following format: "Temp: {X.X} F\nHumd: {X.X} %\nWind: {X.X} m/s"
