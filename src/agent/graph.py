@@ -129,6 +129,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     design_lower = design_text.lower()
     wants_lcd = any(keyword in design_lower for keyword in ["lcd", "display", "screen", "tft", "ili9341"])
     wants_dht11 = "dht11" in design_lower
+    wants_mpu6050 = "mpu 6050" in design_lower or "mpu6050" in design_lower
 
     prompt_lines = [
         f"You are an expert ESP-IDF {skillset.esp_idf_version} developer specializing in {skillset.platform_name} ({skillset.mcu}) development. Generate ONLY the ESP-IDF C code for main.c based on this design.",
@@ -191,6 +192,20 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
                 "```c",
                 dht11_template,
                 "```",
+            ])
+    if wants_mpu6050:
+        # https://github.com/espressif/esp-bsp/blob/master/examples/display_sensors/main/main.c
+        mpu6050_template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'mpu6050', 'main.c')
+        if os.path.exists(mpu6050_template_path):
+            with open(mpu6050_template_path, 'r') as template_file:
+                mpu6050_template = template_file.read().strip()
+            prompt_lines.extend([
+                "",
+                "REFERENCE MPU6050 USAGE EXAMPLE (adapt it to satisfy the current design):",
+                "```c",
+                mpu6050_template,
+                "```",
+                # "Only learn how it initializes and reads data from MPU6050; do NOT copy entire code.",
             ])
 
     prompt = "\n".join(prompt_lines)
@@ -351,6 +366,8 @@ project({project_name})
     uses_lcd = bool(state.esp_idf_code and 'esp32s3_box_lcd_config.h' in state.esp_idf_code)
     # Detect if DHT11 sensor is used
     uses_dht11 = bool(state.esp_idf_code and 'dht11.h' in state.esp_idf_code)
+    # Detect if MPU6050 is used
+    uses_mpu6050 = bool(state.esp_idf_code and 'mpu6050' in state.esp_idf_code)
 
     # Create idf_component.yml in main component directory with conditional dependencies
     idf_component_lines = [
@@ -366,6 +383,10 @@ project({project_name})
             '  esp_lcd_ili9341: ^1.0',
             '  espressif/esp_lvgl_port: ^2.6.0',
         ])
+    if uses_mpu6050:
+        idf_component_lines.append(
+            '  espressif/mpu6050: ^1.1.1',  # idf.py add-dependency "espressif/mpu6050: "^1.1.1"
+        )
 
     idf_component_yml = '\n'.join(idf_component_lines) + '\n'
     with open(os.path.join(main_dir, "idf_component.yml"), "w") as f:

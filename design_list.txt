@@ -43,3 +43,7 @@ The most recent reading is always displayed at the end (bottom), and the previou
 
 Write the program and implement a customized 1-Wire protocol on the ESP32, which reads and parses the DHT11 sensor data captured by the ESP32 and displays it on the LCD. 
 In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
+
+Write the program that allows the ESP32 to control and read data from the MPU 6050 IMU (SCL: GPIO10, SDA: GPIO11) using the I2C serial protocol at every press of the push button (GPIO38) via GPIO-based interrupt. 
+The program should include the calibration process of the 6 DoF IMU reading when the push button is pressed, and display the IMU data on the LCD in the format of (X/Y/Z: axes; a: accelerometer reading; g: gyroscope reading): "Xa {X.X}, Xg {X.X}\nYa {X.X}, Yg {X.X}\nZa {X.X}, Zg {X.X}"
+
