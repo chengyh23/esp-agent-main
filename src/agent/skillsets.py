@@ -446,7 +446,7 @@ ESP32_S3_BOX_3 = PlatformSkillset(
 
     compile_time={
         "sdkconfig-font": "Ensure the font used in  ESP-IDF C code is enabled in sdkconfig. Read ESP-IDF C code written by generate_code, if lv_font_montserrat_<number> is found in the ESP_IDF C code, then ensure set CONFIG_LV_FONT_MONTSERRAT_<number>=y (not =n) in sdkconfig. Run scripts/configure_lvgl_fonts.py to do this step.",
-
+        "partition-table-size": "Estimation flash size, if the default settingg is insufficient, choose the partition table size in sdkconfig based on application needs. Options include:\n(1) Single factory app, no OTA;\n(2) Single factory app (large), no OTA\nThe corresponding CSV file in the IDF directory is partitions_singleapp_large.csv;\n(3) Factory app, two OTA definitions\nThe corresponding CSV file in the IDF directory is partitions_two_ota.csv; (4) Two large size OTA partitions\nThe corresponding CSV file in the IDF directory is partitions_two_ota_large.csv; or (5) Custom partition table CSV.",
     }
 )
 
