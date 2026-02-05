@@ -87,6 +87,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     wants_dht11 = "dht11" in design_lower
     wants_mpu6050 = any(keyword in design_lower for keyword in ["mpu 6050", "mpu6050"])
     wants_wifi = any(keyword in design_lower for keyword in ["wifi", "web server", "http", "mqtt"])
+    print(f"🧠 Generating Arduino code for design (timer: {wants_timer}, lcd: {wants_lcd}, dht11: {wants_dht11}, mpu6050: {wants_mpu6050}, wifi: {wants_wifi})")
 
     prompt_lines = [
         f"You are an expert Arduino developer specializing in {skillset.platform_name} ({skillset.mcu}) development. Generate ONLY the Arduino .ino code based on this design.",
@@ -108,7 +109,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     prompt_lines.extend([
         "",
         "CRITICAL ARDUINO REQUIREMENTS:",
-        "- Target: ESP32-S3 using Arduino framework",
+        "- Target: Arduino Mega 2560 R3 using Arduino framework",
         "- Use standard Arduino functions: pinMode(), digitalWrite(), digitalRead(), analogRead(), etc.",
         "- Include setup() and loop() functions",
         "- Use Serial.begin() for serial communication",
@@ -142,13 +143,18 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
         ])
 
     if wants_dht11:
-        prompt_lines.extend([
-            "For DHT11 sensor:",
-            "- Use DHT sensor library (e.g., DHT sensor library by Adafruit)",
-            "- #include <DHT.h>",
-            "- Initialize with DHT dht(PIN, DHT11);",
-            "",
-        ])
+        # https://github.com/dhrubasaha08/DHT11/blob/main/examples/ReadTempAndHumidity/ReadTempAndHumidity.ino
+        dht11_template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates_arduino', 'dht11', 'ReadTempAndHumidity.ino')
+        if os.path.exists(dht11_template_path):
+            with open(dht11_template_path, 'r') as template_file:
+                dht11_template = template_file.read().strip()
+            prompt_lines.extend([
+                "",
+                "REFERENCE DHT11 USAGE EXAMPLE:",
+                "```c",
+                dht11_template,
+                "```",
+            ])
 
     if wants_mpu6050:
         # https://github.com/adafruit/Adafruit_MPU6050/blob/master/examples/basic_readings/basic_readings.ino

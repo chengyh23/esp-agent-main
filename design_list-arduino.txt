@@ -41,7 +41,8 @@ The most recent reading is always displayed at the end (bottom), and the previou
 ● Reset the counter to start from 1; and
 ● Clears the LCD display
 
-[x] Write the program and implement a customized 1-Wire protocol on the Arduino Mega 2560 R3, which reads and parses the DHT11 sensor data captured by the Arduino Mega 2560 R3 and displays it on the LCD. In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
+[lab3_task1]
+Write the program and implement a customized 1-Wire protocol on the Arduino Mega 2560 R3, which reads and parses the DHT11 sensor data captured by the Arduino Mega 2560 R3 and displays it on the LCD. In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
 
 [lab3_task3]
 Write the program that allows the Arduino Mega 2560 R3 to control and read data from the MPU 6050 IMU using the I2C serial protocol at every press of the push button via GPIO-based interrupt. The program should include the calibration process of the 6 DoF IMU reading when the push button is pressed, and display the IMU data on the LCD in the format of (X/Y/Z: axes; a: accelerometer reading; g: gyroscope reading): "a {X.X} {Y.Y} {Z.Z}\ng {X.X} {Y.Y} {Z.Z}"
