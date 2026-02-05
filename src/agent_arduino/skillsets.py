@@ -383,9 +383,10 @@ ARDUINO_MEGA_2560_R3 = PlatformSkillset(
         "I2C Communication": "Use Wire library. Initialize with Wire.begin(). Use Wire.beginTransmission(), Wire.write(), Wire.endTransmission() for writing. Wire.requestFrom() and Wire.read() for reading.",
         "SPI Communication": "Use SPI library. Initialize with SPI.begin(). Use SPI.transfer() for data exchange. Set SPI mode, bit order, and clock divider with SPI.setDataMode(), SPI.setBitOrder(), SPI.setClockDivider().",
         "Memory Management": "Arduino Mega has 8KB SRAM. Minimize global variables. Use F() macro for string literals in Serial.print() to save RAM. Use PROGMEM for constant data.",
-        "Timers": "Use millis() for non-blocking timing. Avoid delay() in time-critical code. For precise timing, use Timer interrupts (Timer1, Timer3, Timer4, Timer5 available).",
+        # "Timers": "Use millis() for non-blocking timing. Avoid delay() in time-critical code. For precise timing, use Timer interrupts (Timer1, Timer3, Timer4, Timer5 available).",
+        "Timer Implementation": "Use TimerInterrupt for high-resolution timing and periodic tasks. In the header comment, remind user to install library: TimerInterrupt",
         "Power Consumption": "Use sleep modes from avr/sleep.h for low power. Disable unused peripherals. Set unused pins as INPUT_PULLUP or OUTPUT LOW.",
-        "MPU6050": "When using the MPU6050 IMU sensor, include <Adafruit_MPU6050.h>. Check the usage of MPU6050 by the dirver in MPU6050 USAGE EXAMPLE.",
+        "MPU6050": "When using the MPU6050 IMU sensor, include <Adafruit_MPU6050.h>. Check the usage of MPU6050 by the dirver in MPU6050 USAGE EXAMPLE. Remind user to install the Adafruit MPU6050 library.",
     },
     
     header_files={

@@ -82,6 +82,7 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
 
     design_text = state.design or ""
     design_lower = design_text.lower()
+    wants_timer = any(keyword in design_lower for keyword in ["timer", "timer interrupt", "timerinterrupt"])
     wants_lcd = any(keyword in design_lower for keyword in ["lcd", "display", "screen", "tft", "ili9341"])
     wants_dht11 = "dht11" in design_lower
     wants_mpu6050 = any(keyword in design_lower for keyword in ["mpu 6050", "mpu6050"])
@@ -118,7 +119,19 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
         "- For SPI, use SPI.begin(SCK, MISO, MOSI, SS)",
         "",
     ])
-
+    if wants_timer:
+        # https://github.com/khoih-prog/TimerInterrupt/blob/master/examples/Argument_Simple/Argument_Simple.ino
+        timer_template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates_arduino', 'timer_interrupt', 'Argument_Simple.ino')
+        if os.path.exists(timer_template_path):
+            with open(timer_template_path, 'r') as template_file:
+                timer_template = template_file.read().strip()
+            prompt_lines.extend([
+                "",
+                "REFERENCE TIMER INTERRUPT USAGE EXAMPLE (adapt it to satisfy the current design):",
+                "```c",
+                timer_template,
+                "```",
+            ])
     if wants_lcd:
         prompt_lines.extend([
             "For LCD/TFT displays:",
