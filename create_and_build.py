@@ -1,26 +1,37 @@
 #!/usr/bin/env python3
-"""Example script to create and build an ESP-IDF project using the agent."""
+"""Script to create and build IoT projects (Arduino or ESP-IDF) using the agent."""
 
+import argparse
 import asyncio
 import os
 import sys
 import shutil
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from agent.graph import graph
+from agent_arduino.graph import build_graph
+
 
 async def main():
-    # Load environment variables from .env file if it exists
+    parser = argparse.ArgumentParser(description="IoT Project Creator Agent")
+    parser.add_argument(
+        "--platform", "-p",
+        choices=["Arduino", "ESP-IDF"],
+        default=os.getenv("PLATFORM", "Arduino"),
+        help="Target platform (default: Arduino)"
+    )
+    args = parser.parse_args()
+    platform = args.platform
+
     from dotenv import load_dotenv
     load_dotenv()
 
-    # Import and validate configuration
-    from src.agent.config import config
+    from src.agent_arduino.config import get_config
+    config = get_config(platform)
 
     if config.VERBOSE_LOGGING:
         config.print_config()
 
-    # Check if ANTHROPIC_API_KEY is set
     if not config.ANTHROPIC_API_KEY:
         print("ERROR: ANTHROPIC_API_KEY not found!")
         print("Please set your Anthropic API key in the .env file or environment variable.")
@@ -31,31 +42,29 @@ async def main():
     if os.path.exists(project_dir):
         print(f"🧹 Removing existing project directory: {project_dir}")
         shutil.rmtree(project_dir)
-    
-    # Create project from design file
-    design_file = config.DESIGN_FILE_PATH  # Use config for design file path
-    
-    print("🤖 ESP-IDF Project Creator Agent")
+
+    design_file = config.DESIGN_FILE_PATH
+
+    print(f"🤖 IoT Project Creator Agent ({platform})")
     print("=" * 50)
     print(f"📄 Reading design from: {design_file}")
-    
-    # Read and display the design
+
     with open(design_file, 'r') as f:
         design_content = f.read().strip()
     print(f"📝 Design: {design_content}")
     print()
-    
+
     print("🧠 Agent is thinking and generating code...")
     print("-" * 50)
-    
-    result = await graph.ainvoke({"design_file": design_file})
-    
+
+    graph = build_graph(platform)
+    result = await graph.ainvoke({"platform": platform, "design_file": design_file})
+
     print("✅ Project created successfully!")
     print(f"📁 Location: ./{result['message'].split('in ./')[1]}")
     print()
-    
+
     # Show the generated files
-    project_dir = config.DEFAULT_PROJECT_NAME
     if os.path.exists(project_dir):
         print("📋 Generated files:")
         for root, dirs, files in os.walk(project_dir):
@@ -67,35 +76,34 @@ async def main():
                 print(f"{subindent}📄 {file}")
         print()
         
-        # Show the generated code
-        main_c_path = os.path.join(project_dir, "main", "main.c")
-        if os.path.exists(main_c_path):
-            print("💻 Generated ESP-IDF Code (main.c):")
-            print("-" * 50)
-            with open(main_c_path, 'r') as f:
-                code = f.read()
-            print(code)
-            print("-" * 50)
-        
+        # # Show the generated code (Arduino uses .ino files)
+        # ino_path = os.path.join(project_dir, f"{project_dir}.ino")
+        # if os.path.exists(ino_path):
+        #     print("💻 Generated Arduino Code (.ino):")
+        #     print("-" * 50)
+        #     with open(ino_path, 'r') as f:
+        #         code = f.read()
+        #     print(code)
+        #     print("-" * 50)
+
         # Show wiring instructions if available
         wiring_path = os.path.join(project_dir, "WIRING.md")
         if os.path.exists(wiring_path):
             print("🔌 Wiring Instructions:")
             print("-" * 50)
             with open(wiring_path, 'r') as f:
-                wiring = f.read()
-            print(wiring)
+                print(f.read())
             print("-" * 50)
-        
+
         # Show README if available
         readme_path = os.path.join(project_dir, "README.md")
         if os.path.exists(readme_path):
             print("📖 README:")
             print("-" * 50)
             with open(readme_path, 'r') as f:
-                readme = f.read()
-            print(readme)
+                print(f.read())
             print("-" * 50)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

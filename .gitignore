@@ -1,5 +1,8 @@
+iot_project/
+iot_project*/
 esp_project/
 arduino_project/
+arduino_project*/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
