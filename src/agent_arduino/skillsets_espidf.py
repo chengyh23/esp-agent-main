@@ -453,6 +453,7 @@ ESP32_S3_BOX_3 = PlatformSkillset(
 
 # Registry of available skillsets
 SKILLSETS: Dict[str, PlatformSkillset] = {
+    "esp-idf": ESP32_S3_BOX_3,
     "esp32-s3-box-3": ESP32_S3_BOX_3,
     "esp32-s3-box3": ESP32_S3_BOX_3,  # Alias
     "box-3": ESP32_S3_BOX_3,  # Alias

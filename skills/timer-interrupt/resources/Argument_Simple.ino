@@ -39,7 +39,7 @@
         defined(ARDUINO_AVR_PROTRINKET3FTDI) )
   #define USE_TIMER_2     true
   #warning Using Timer1
-#else          
+#else
   #define USE_TIMER_3     true
   #warning Using Timer3
 #endif
@@ -72,7 +72,7 @@ void TimerHandler1(unsigned int outputPin = LED_BUILTIN)
   Serial.print("pin1 = "); Serial.print(outputPin);
   Serial.print(" address: "); Serial.println((uint32_t) &outputPin );
 #endif
-  
+
   digitalWrite(outputPin, toggle1);
   toggle1 = !toggle1;
 }
@@ -120,26 +120,26 @@ void setup()
   {
     Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
 
-#if (TIMER_INTERRUPT_DEBUG > 1)    
+#if (TIMER_INTERRUPT_DEBUG > 1)
     Serial.print(F("OutputPin1 = ")); Serial.print(outputPin1);
     Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin1 );
-#endif    
+#endif
   }
   else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
 #if USE_TIMER_2
-  
+
   ITimer2.init();
 
   if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
   {
     Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
 
-#if (TIMER_INTERRUPT_DEBUG > 1)    
+#if (TIMER_INTERRUPT_DEBUG > 1)
     Serial.print(F("OutputPin = ")); Serial.print(outputPin);
     Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
-#endif    
+#endif
   }
   else
     Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
@@ -152,15 +152,15 @@ void setup()
   {
     Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
 
-#if (TIMER_INTERRUPT_DEBUG > 1)    
+#if (TIMER_INTERRUPT_DEBUG > 1)
     Serial.print(F("OutputPin = ")); Serial.print(outputPin);
     Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
-#endif    
+#endif
   }
   else
     Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
 
-#endif 
+#endif
 }
 
 void loop()

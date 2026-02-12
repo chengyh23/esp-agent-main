@@ -1,6 +1,6 @@
-"""LangGraph agent for creating Arduino projects from design descriptions.
+"""LangGraph agent for creating {ESP_IDF/Arduino} projects from design descriptions.
 
-Reads a design file or description and generates an Arduino ready project.
+Reads a design file or description and generates an {ESP_IDF/Arduino} ready project.
 """
 
 from __future__ import annotations
@@ -9,14 +9,16 @@ import json
 import os
 from dataclasses import dataclass
 from typing import Any, Dict
+from pathlib import Path
 
 from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph
 from langgraph.runtime import Runtime
 from typing_extensions import TypedDict
 
-from .config import config
-from .skillsets import get_skillset, ARDUINO_MEGA_2560_R3
+from .config import get_config
+from .skillsets import get_skillset
+from .skillsets_espidf import get_skillset as get_skillset_espidf
 from .wiring_diagrams import save_wiring_diagram_all_formats, save_wiring_diagram_json
 
 class Context(TypedDict):
@@ -37,14 +39,20 @@ class State:
     See: https://langchain-ai.github.io/langgraph/concepts/low_level/#state
     """
 
+    platform: str  # Target platform
     design_file: str = ""  # Path to file containing design description
     design: str = ""  # The actual design text
-    arduino_code: str = ""  # Generated Arduino code
+    firmware_code: str = ""  # Generated ESP-IDF/Arduino code
     wiring_diagram: str = ""  # Generated wiring diagram (structured text/JSON)
     wiring_diagram_svg: str = ""  # SVG representation of wiring diagram
     additional_info: str = ""  # Additional documentation
     message: str = ""
-    platform: str = "arduino-mega-2560-r3"  # Target platform
+
+@dataclass
+class StateESPIDF(State):
+
+    sdkconfig: str = ""  # Reconciled sdkconfig content
+
 
 
 async def read_design(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
@@ -222,17 +230,53 @@ async def generate_code(state: State, runtime: Runtime[Context]) -> Dict[str, An
     return {"arduino_code": code}
 
 
+def output_result(result: dict, args) -> None:
+    """Output the result in requested format."""
+    if args.json:
+        json_result = {
+            "task": result["task"],
+            "firmware": result["firmware"],
+        }
+        output_text = json.dumps(json_result, indent=2)
+    else:
+        output_text = result["firmware"]
+
+    if args.output:
+        output_file = Path(args.output)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_file, "w") as f:
+            f.write(output_text)
+        print(f"Output saved to: {output_file}")
+    else:
+        print("\nGenerated Firmware:")
+        print("=" * 60)
+        print(output_text)
+        print("=" * 60)
+        
+async def generate_code_loop(state: State):
+    from agent_arduino.iot_agent import IoTAgent
+    agent = IoTAgent(state.platform)
+    with open("design.txt", "r") as f:
+        args_task = f.read().strip()
+    result = agent.run(args_task)
+    # output_result(result, args)
+    code = result["firmware"]
+    print(f"💻 Generated {state.platform} code")
+    return {"firmware_code": code}
+
+
 async def generate_diagram(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
     """Generate wiring diagrams and documentation based on the design."""
+    config = get_config(state.platform)
     if not config.ANTHROPIC_API_KEY:
         raise ValueError("ANTHROPIC_API_KEY not set in configuration")
-    
+
     # Get platform skillset
     try:
         skillset = get_skillset(state.platform)
     except ValueError as e:
         raise ValueError(f"Invalid platform specified: {e}")
-    
+
     model = ChatAnthropic(
         model=config.ANTHROPIC_MODEL,
         api_key=config.ANTHROPIC_API_KEY,
@@ -317,6 +361,7 @@ Official Arduino Mega 2560 R3 pinout reference:
 
 async def assemble_project(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
     """Assemble the final Arduino project from generated components."""
+    config = get_config(state.platform)
     project_name = (runtime.context or {}).get('project_name', config.DEFAULT_PROJECT_NAME)
     project_dir = f"./{project_name}"
     
@@ -324,10 +369,10 @@ async def assemble_project(state: State, runtime: Runtime[Context]) -> Dict[str,
     os.makedirs(project_dir, exist_ok=True)
     
     # Write the generated Arduino code as .ino file
-    if state.arduino_code:
+    if state.firmware_code:
         ino_path = os.path.join(project_dir, f"{project_name}.ino")
         with open(ino_path, "w") as f:
-            f.write(state.arduino_code)
+            f.write(state.firmware_code)
     
     # Save wiring diagrams in multiple formats
     if state.wiring_diagram:
@@ -388,25 +433,246 @@ See `WIRING.md` for complete hardware connection details.
     }
 
 
-# Define the graph
-graph = StateGraph(State, context_schema=Context)
-graph = graph.add_node(read_design)
-graph = graph.add_node(generate_code)
+async def assemble_project_espidf(state: StateESPIDF, runtime: Runtime[Context]) -> Dict[str, Any]:
+    """Assemble the final ESP-IDF project from generated components."""
+    config = get_config(state.platform)
+    project_name = (runtime.context or {}).get('project_name', config.DEFAULT_PROJECT_NAME)
+    project_dir = f"./{project_name}"
+    
+    # Create project directory
+    os.makedirs(project_dir, exist_ok=True)
+    
+    # Create root CMakeLists.txt
+    cmake_content = f'''cmake_minimum_required(VERSION 3.16)
 
-# Conditionally add wiring diagram generation based on configuration
-if config.GENERATE_WIRING_DIAGRAM:
-    graph = graph.add_node(generate_diagram)
+include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)
 
-graph = graph.add_node(assemble_project)
+project({project_name})
+'''
+    
+    with open(os.path.join(project_dir, "CMakeLists.txt"), "w") as f:
+        f.write(cmake_content)
+    
+    # Create main directory
+    main_dir = os.path.join(project_dir, "main")
+    os.makedirs(main_dir, exist_ok=True)
 
-# Add edges
-graph = graph.add_edge("__start__", "read_design")
-graph = graph.add_edge("read_design", "generate_code")
+    # Detect if LCD support is required (based on config header usage)
+    uses_lcd = bool(state.firmware_code and 'esp32s3_box_lcd_config.h' in state.firmware_code)
+    # Detect if DHT11 sensor is used
+    uses_dht11 = bool(state.firmware_code and 'dht11.h' in state.firmware_code)
+    # Detect if MPU6050 is used
+    uses_mpu6050 = bool(state.firmware_code and 'mpu6050' in state.firmware_code)
 
-if config.GENERATE_WIRING_DIAGRAM:
-    graph = graph.add_edge("read_design", "generate_diagram")
-    graph = graph.add_edge("generate_diagram", "assemble_project")
-else:
-    graph = graph.add_edge("generate_code", "assemble_project")
+    # Create idf_component.yml in main component directory with conditional dependencies
+    idf_component_lines = [
+        'version: "1.0.0"',
+        'description: "Main application component for ESP32-S3-BOX-3"',
+        'dependencies:',
+        '  idf: ">=5.0"',
+    ]
 
-graph = graph.compile(name="Arduino Project Creator")
+    if uses_lcd:
+        idf_component_lines.extend([
+            '  lvgl/lvgl: ^9.2.0',
+            '  esp_lcd_ili9341: ^1.0',
+            '  espressif/esp_lvgl_port: ^2.6.0',
+        ])
+    if uses_mpu6050:
+        idf_component_lines.append(
+            '  espressif/mpu6050: ^1.1.1',  # idf.py add-dependency "espressif/mpu6050: "^1.1.1"
+        )
+
+    idf_component_yml = '\n'.join(idf_component_lines) + '\n'
+    with open(os.path.join(main_dir, "idf_component.yml"), "w") as f:
+        f.write(idf_component_yml)
+    print("📝 Generated idf_component.yml in main/")
+    
+    # Create main CMakeLists.txt
+    main_cmake_content = '''idf_component_register(SRCS "main.c"
+                    INCLUDE_DIRS ".")'''
+    
+    with open(os.path.join(main_dir, "CMakeLists.txt"), "w") as f:
+        f.write(main_cmake_content)
+    
+    # Copy LCD config header if needed
+    if uses_lcd:
+        header_src = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'templates', 'esp_idf', 'esp32s3_box_lcd_config.h'
+        )
+        header_dst = os.path.join(main_dir, 'esp32s3_box_lcd_config.h')
+        if os.path.exists(header_src):
+            import shutil
+            shutil.copy2(header_src, header_dst)
+            print("📄 Copied LCD config header to project")
+    if uses_dht11:
+        header_src = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'dht11', 'dht11.h')
+        implementation_src = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'dht11', 'dht11.c')
+        header_dst = os.path.join(main_dir, 'dht11.h')
+        implementation_dst = os.path.join(main_dir, 'dht11.c')
+        if os.path.exists(header_src):
+            import shutil
+            shutil.copy2(header_src, header_dst)
+            shutil.copy2(implementation_src, implementation_dst)
+            print("📄 Copied DHT11 header and implementation to project")
+
+    # Write the generated ESP-IDF code as main.c
+    if state.firmware_code:
+        with open(os.path.join(main_dir, "main.c"), "w") as f:
+            f.write(state.firmware_code)
+    
+    # Save wiring diagrams in multiple formats
+    if state.wiring_diagram:
+        try:
+            saved_diagram_files = save_wiring_diagram_all_formats(
+                wiring_diagram_text=state.wiring_diagram,
+                additional_info=state.additional_info,
+                project_dir=project_dir,
+                project_name=project_name,
+                platform=state.platform
+            )
+        except Exception as e:
+            print(f"❌ Error saving wiring diagrams: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # Write additional info to README
+    readme_content = f'''# {project_name}
+
+## Project Description
+{state.design}
+
+## Additional Information
+{state.additional_info}
+'''
+
+    readme_content += '''
+## Hardware Setup
+See `WIRING.md` for complete hardware connection details.
+
+Wiring diagrams are saved in multiple formats:
+
+## Building and Flashing
+```bash
+idf.py build
+idf.py flash
+idf.py monitor
+```
+
+## Generated Files
+'''
+    with open(os.path.join(project_dir, "README.md"), "w") as f:
+        f.write(readme_content)
+    
+    # Create basic sdkconfig
+    with open(os.path.join(project_dir, "sdkconfig"), "w") as f:
+        f.write('''# ESP-IDF SDK Configuration
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
+''')
+    if state.sdkconfig:
+        with open(os.path.join(project_dir, "sdkconfig"), "w") as f:
+            f.write(state.sdkconfig)
+    
+    # Create sdkconfig.defaults for IDF target
+    with open(os.path.join(project_dir, "sdkconfig.defaults"), "w") as f:
+        f.write('CONFIG_IDF_TARGET="esp32s3"\n')
+    
+    print("📦 Assembled complete ESP-IDF project")
+    print(f"📁 Project files saved to: {project_dir}/")
+    return {
+        "message": f"ESP-IDF project '{project_name}' created successfully in ./{project_name}/"
+    }
+
+async def reconcile_sdkconfig(state: StateESPIDF, runtime: Runtime[Context]) -> Dict[str, Any]:
+    """Reconcile sdkconfig for ESP-IDF projects."""
+    config = get_config("ESP-IDF")
+    try:
+        skillset = get_skillset_espidf(state.platform)
+    except ValueError as e:
+        raise ValueError(f"Invalid platform specified: {e}")
+
+    model = ChatAnthropic(
+        model=config.ANTHROPIC_MODEL,
+        api_key=config.ANTHROPIC_API_KEY,
+        max_retries=config.MAX_RETRIES,
+        timeout=config.TIMEOUT_SECONDS
+    )
+
+    prompt_lines = [
+        f"You are an ESP-IDF configuration expert. Analyze the ESP32 C code and ensure the sdkconfig is consistent with all compile-time requirements.",
+        "",
+        "Here is the generated ESP-IDF C code:",
+        state.firmware_code,
+        "",
+        """Default sdkconfig is:
+
+# ESP-IDF SDK Configuration
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
+""",
+        "Only make necessary changes to default sdkconfig to ensure all required features are enabled based on the generated code.",
+        "Output ONLY sdkconfig. No explanations or markdown formatting."
+    ]
+    prompt = "\n".join(prompt_lines)
+    response = await model.ainvoke(prompt)
+    code = response.content.strip()
+
+    if code.startswith('```'):
+        code = code.split('\n', 1)[1] if '\n' in code else code[3:]
+    if code.endswith('```'):
+        code = code[:-3].strip()
+
+    print("⚙️ Reconciled sdkconfig")
+    return {"sdkconfig": code}
+
+
+def build_graph(platform: str):
+    """Build the appropriate graph based on platform.
+
+    Args:
+        platform: "Arduino" or "ESP-IDF"
+
+    Returns:
+        Compiled StateGraph for the specified platform
+    """
+    config = get_config(platform)
+
+    if platform == "ESP-IDF":
+        # ESP-IDF graph: read_design → generate_code_loop → reconcile_sdkconfig → assemble_project_espidf
+        g = StateGraph(StateESPIDF, context_schema=Context)
+        g = g.add_node(read_design)
+        g = g.add_node(generate_code_loop)
+        g = g.add_node(reconcile_sdkconfig)
+        g = g.add_node(assemble_project_espidf)
+
+        g = g.add_edge("__start__", "read_design")
+        g = g.add_edge("read_design", "generate_code_loop")
+        g = g.add_edge("generate_code_loop", "reconcile_sdkconfig")
+        g = g.add_edge("reconcile_sdkconfig", "assemble_project_espidf")
+
+        if config.GENERATE_WIRING_DIAGRAM:
+            g = g.add_node(generate_diagram)
+            g = g.add_edge("read_design", "generate_diagram")
+            g = g.add_edge("generate_diagram", "assemble_project_espidf")
+
+        return g.compile(name="ESP-IDF Project Creator")
+
+    else:
+        # Arduino graph: read_design → generate_code_loop → assemble_project
+        g = StateGraph(State, context_schema=Context)
+        g = g.add_node(read_design)
+        g = g.add_node(generate_code_loop)
+        g = g.add_node(assemble_project)
+
+        g = g.add_edge("__start__", "read_design")
+        g = g.add_edge("read_design", "generate_code_loop")
+        g = g.add_edge("generate_code_loop", "assemble_project")
+
+        if config.GENERATE_WIRING_DIAGRAM:
+            g = g.add_node(generate_diagram)
+            g = g.add_edge("read_design", "generate_diagram")
+            g = g.add_edge("generate_diagram", "assemble_project")
+
+        return g.compile(name="Arduino Project Creator")
+
