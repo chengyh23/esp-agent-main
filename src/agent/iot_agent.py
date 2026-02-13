@@ -11,10 +11,10 @@ import re
 
 from anthropic import Anthropic
 
-from src.agent_arduino.config import config
+from src.agent.config import config
 ANTHROPIC_API_KEY = config.ANTHROPIC_API_KEY
 ANTHROPIC_MODEL = config.ANTHROPIC_MODEL
-from agent_arduino.skill_registry import SkillRegistry
+from agent.skill_registry import SkillRegistry
 
 
 def extract_code_from_response(response: str) -> str:

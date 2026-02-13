@@ -12,13 +12,15 @@ PlatformType = Literal["Arduino", "ESP-IDF"]
 class BaseConfig:
     """Base configuration shared by all platforms."""
 
+    PROJECT_NAME: str
+    PLATFORM: PlatformType
+    
     # API Configuration
     ANTHROPIC_BASE_URL: str = os.getenv("ANTHROPIC_BASE_URL")
     ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
     ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
 
     # Project Configuration
-    DEFAULT_PROJECT_NAME: str = os.getenv("DEFAULT_PROJECT_NAME", "iot_project")
     DESIGN_FILE_PATH: str = os.getenv("DESIGN_FILE_PATH", "design.txt")
 
     # Agent Configuration
@@ -32,7 +34,6 @@ class BaseConfig:
     # Wiring Diagram Configuration
     GENERATE_WIRING_DIAGRAM: bool = os.getenv("GENERATE_WIRING_DIAGRAM", "false").lower() == "true"
 
-    PLATFORM: PlatformType = "Arduino"  # Override in subclasses
 
     @classmethod
     def validate(cls) -> None:

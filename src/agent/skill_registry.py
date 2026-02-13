@@ -14,6 +14,15 @@ import yaml
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 SKILLS_DIR = PROJECT_ROOT / "skills"
 
+# Enabled skills - this is the research focus variable
+ENABLED_SKILLS = [
+    "arduino_setup",
+    "dht11-sensor",
+    "mpu6050-imu",
+    "timer-interrupt",
+    "button-debounce"
+]
+
 
 class SkillRegistry:
     """Reads and manages skill definitions from SKILL.md files with progressive disclosure support."""
@@ -72,16 +81,7 @@ class SkillRegistry:
 
     def _discover_skills(self) -> None:
         """Discover all available skills by scanning skill directories."""
-        # skill_names = ["arduino-mega-2560", "dht11", "mpu6050"]
-        skill_names = [
-            "arduino_setup", 
-            "dht11-sensor", 
-            # "mpu6050-imu", 
-            # "timer-interrupt", 
-            # "button-debounce"
-        ]
-
-        for skill_name in skill_names:
+        for skill_name in ENABLED_SKILLS:
             skill_dir = SKILLS_DIR / skill_name
             if skill_dir.exists():
                 skill_data = self._parse_skill_markdown(skill_dir)

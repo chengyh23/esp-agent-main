@@ -254,7 +254,7 @@ def output_result(result: dict, args) -> None:
         print("=" * 60)
         
 async def generate_code_loop(state: State):
-    from agent_arduino.iot_agent import IoTAgent
+    from agent.iot_agent import IoTAgent
     agent = IoTAgent(state.platform)
     with open("design.txt", "r") as f:
         args_task = f.read().strip()
@@ -364,13 +364,15 @@ async def assemble_project(state: State, runtime: Runtime[Context]) -> Dict[str,
     config = get_config(state.platform)
     project_name = (runtime.context or {}).get('project_name', config.DEFAULT_PROJECT_NAME)
     project_dir = f"./{project_name}"
-    
+    # Use basename for filenames (in case project_name is a path like "iot_project/lab1_task1")
+    project_basename = os.path.basename(project_name)
+
     # Create project directory
     os.makedirs(project_dir, exist_ok=True)
-    
+
     # Write the generated Arduino code as .ino file
     if state.firmware_code:
-        ino_path = os.path.join(project_dir, f"{project_name}.ino")
+        ino_path = os.path.join(project_dir, f"{project_basename}.ino")
         with open(ino_path, "w") as f:
             f.write(state.firmware_code)
     
@@ -381,16 +383,16 @@ async def assemble_project(state: State, runtime: Runtime[Context]) -> Dict[str,
                 wiring_diagram_text=state.wiring_diagram,
                 additional_info=state.additional_info,
                 project_dir=project_dir,
-                project_name=project_name,
+                project_name=project_basename,
                 platform=state.platform
             )
         except Exception as e:
             print(f"❌ Error saving wiring diagrams: {e}")
             import traceback
             traceback.print_exc()
-    
+
     # Write additional info to README
-    readme_content = f'''# {project_name}
+    readme_content = f'''# {project_basename}
 
 ## Project Description
 {state.design}
@@ -418,18 +420,18 @@ See `WIRING.md` for complete hardware connection details.
 4. Open Serial Monitor (Tools > Serial Monitor) to view output
 
 ## Generated Files
-- {project_name}.ino - Main Arduino sketch
+- {project_basename}.ino - Main Arduino sketch
 - README.md - This file
 - WIRING.md - Wiring diagram and connections
 '''
-    
+
     with open(os.path.join(project_dir, "README.md"), "w") as f:
         f.write(readme_content)
-    
+
     print("📦 Assembled complete Arduino project")
     print(f"📁 Project files saved to: {project_dir}/")
     return {
-        "message": f"Arduino project '{project_name}' created successfully in ./{project_name}/"
+        "message": f"Arduino project '{project_basename}' created successfully in {project_dir}/"
     }
 
 
@@ -438,16 +440,18 @@ async def assemble_project_espidf(state: StateESPIDF, runtime: Runtime[Context])
     config = get_config(state.platform)
     project_name = (runtime.context or {}).get('project_name', config.DEFAULT_PROJECT_NAME)
     project_dir = f"./{project_name}"
-    
+    # Use basename for filenames (in case project_name is a path like "iot_project/lab1_task1")
+    project_basename = os.path.basename(project_name)
+
     # Create project directory
     os.makedirs(project_dir, exist_ok=True)
-    
+
     # Create root CMakeLists.txt
     cmake_content = f'''cmake_minimum_required(VERSION 3.16)
 
 include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)
 
-project({project_name})
+project({project_basename})
 '''
     
     with open(os.path.join(project_dir, "CMakeLists.txt"), "w") as f:
@@ -528,16 +532,16 @@ project({project_name})
                 wiring_diagram_text=state.wiring_diagram,
                 additional_info=state.additional_info,
                 project_dir=project_dir,
-                project_name=project_name,
+                project_name=project_basename,
                 platform=state.platform
             )
         except Exception as e:
             print(f"❌ Error saving wiring diagrams: {e}")
             import traceback
             traceback.print_exc()
-    
+
     # Write additional info to README
-    readme_content = f'''# {project_name}
+    readme_content = f'''# {project_basename}
 
 ## Project Description
 {state.design}
@@ -563,7 +567,7 @@ idf.py monitor
 '''
     with open(os.path.join(project_dir, "README.md"), "w") as f:
         f.write(readme_content)
-    
+
     # Create basic sdkconfig
     with open(os.path.join(project_dir, "sdkconfig"), "w") as f:
         f.write('''# ESP-IDF SDK Configuration
@@ -573,15 +577,15 @@ CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
     if state.sdkconfig:
         with open(os.path.join(project_dir, "sdkconfig"), "w") as f:
             f.write(state.sdkconfig)
-    
+
     # Create sdkconfig.defaults for IDF target
     with open(os.path.join(project_dir, "sdkconfig.defaults"), "w") as f:
         f.write('CONFIG_IDF_TARGET="esp32s3"\n')
-    
+
     print("📦 Assembled complete ESP-IDF project")
     print(f"📁 Project files saved to: {project_dir}/")
     return {
-        "message": f"ESP-IDF project '{project_name}' created successfully in ./{project_name}/"
+        "message": f"ESP-IDF project '{project_basename}' created successfully in {project_dir}/"
     }
 
 async def reconcile_sdkconfig(state: StateESPIDF, runtime: Runtime[Context]) -> Dict[str, Any]:

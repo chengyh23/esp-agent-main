@@ -11,13 +11,13 @@ Write a program that uses interrupt triggered by pressing a tact switch to contr
 Implement one breathing LED, each with 50 levels of duty cycles: 2%, 4%, 6%, ... 100%, with a total breathing frequency of 1 Hz. Then, implement another breathing LED with identical pattern but with the 50 levels of duty cycle given by 100%, 98%, 96%, ..., 4%, 2%.
 
 [lab2_task2]
-Set up the Arduino Mega 2560 R3 with LCD display, and display "Hello World" at the center of the screen.
+Set up the Arduino Mega 2560 R3 with LCD1602 display, and display "Hello World" at the center of the screen.
 
 [lab2_task3]
-Demonstrate a temperature logger using the TMP36 temperature sensor and Arduino Mega 2560 R3's ADC. Every time the button is pressed, an interrupt will be triggered, during which the Arduino Mega 2560 R3 samples the analog output of the TMP36 temperature sensor, calibrates the obtained ADC reading, and displays the temperature reading on the LCD screen (the button press will also clear the LCD screen), with a reasonable font size/layout in the format of “Temp: {ADC reading} F”
+Demonstrate a temperature logger using the TMP36 temperature sensor and Arduino Mega 2560 R3's ADC. Every time the button is pressed, an interrupt will be triggered, during which the Arduino Mega 2560 R3 samples the analog output of the TMP36 temperature sensor, calibrates the obtained ADC reading, and displays the temperature reading on the LCD1602 display screen (the button press will also clear the LCD screen), with a reasonable font size/layout in the format of “Temp: {ADC reading} F”
 
 [lab2_task4]
-Demonstrate the timer-based temperature logger system, where the temperature is properly sampled by the ADC and displayed on the LCD every 1 second. 
+Demonstrate the timer-based temperature logger system, where the temperature is properly sampled by the ADC and displayed on the LCD1602 module every 1 second. 
 Set up a system timer that expires every 1 second, and a counter is used to track how many times the timer has expired. Every time the timer expires (i.e., every 1 second), the following things are done in the sequential order:
 ● The ADC samples the TMP36 analog temperature sensor;
 ● The MCU (ATmega2560) calibrates the ADC reading to F (Fahrenheit);
@@ -27,7 +27,7 @@ The most recent reading is always displayed at the end (bottom), and the previou
 ● Clears the LCD display
 
 [lab3_task1]
-Write the program and implement a customized 1-Wire protocol on the Arduino Mega 2560 R3, which reads and parses the DHT11 sensor data captured by the Arduino Mega 2560 R3 and displays it on the LCD. In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
+Write the program and implement a customized 1-Wire protocol on the Arduino Mega 2560 R3, which reads and parses the DHT11 sensor data captured by the Arduino Mega 2560 R3 and displays it on the LCD1602 display. In particular, implement a GPIO-based interrupt using the push button, and every time the push button is pressed, the program will trigger the start condition on the 1-Wire and read 40-bit data returned by the DHT11 sensor. The returned data is parsed to obtain the temperature and RH (relative humidity) reading, which are then displayed on the LCD in two rows in the format of: "Temp: {X.X}C\nRH: {X.X}%"
 
 [lab3_task3]
-Write the program that allows the Arduino Mega 2560 R3 to control and read data from the MPU 6050 IMU using the I2C serial protocol at every press of the push button via GPIO-based interrupt. The program should include the calibration process of the 6 DoF IMU reading when the push button is pressed, and display the IMU data on the LCD in the format of (X/Y/Z: axes; a: accelerometer reading; g: gyroscope reading): "a {X.X} {Y.Y} {Z.Z}\ng {X.X} {Y.Y} {Z.Z}"
+Write the program that allows the Arduino Mega 2560 R3 to control and read data from the MPU 6050 IMU using the I2C serial protocol at every press of the push button via GPIO-based interrupt. The program should include the calibration process of the 6 DoF IMU reading when the push button is pressed, and display the IMU data on the LCD1602 display in the format of (X/Y/Z: axes; a: accelerometer reading; g: gyroscope reading): "a {X.X} {Y.Y} {Z.Z}\ng {X.X} {Y.Y} {Z.Z}"

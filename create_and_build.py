@@ -9,7 +9,7 @@ import shutil
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from agent_arduino.graph import build_graph
+from agent.graph import build_graph
 
 
 async def main():
@@ -26,7 +26,7 @@ async def main():
     from dotenv import load_dotenv
     load_dotenv()
 
-    from src.agent_arduino.config import get_config
+    from src.agent.config import get_config
     config = get_config(platform)
 
     if config.VERBOSE_LOGGING:
