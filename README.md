@@ -23,3 +23,17 @@ python batch_eval.py --platform ESP-IDF --input design_list.txt
 # Custom output directory
 python batch_eval.py --output results/
 ```
+
+## Configure Enabled Skills
+
+Edit `ENABLED_SKILLS` in `src/agent/skill_registry.py` to set which skills are available to the agent:
+
+```python
+ENABLED_SKILLS = [
+    "arduino_setup",
+    "dht11-sensor",
+    "mpu6050-imu",
+    "timer-interrupt",
+    "button-debounce"
+]
+```
